@@ -1,0 +1,135 @@
+---
+title: "HW1"
+author: "Tzu-ching"
+date: "2016年10月28日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+rawdata <- data.table("C:\\Users\\tseng\\Desktop\\生態資訊學\\raw, skpi=75")
+
+library(data.table)
+C0M530 <- fread("c:\\Users\\tseng\\Desktop\\生態資訊學\\raw/201501_auto_hr.txt, skip=75, header = FALSE")
+na.string = c('-9991', '-9996','-9997','-9998','-9999'))
+
+#處理奮起湖測站資料
+
+
+
+
+#載入必要的libraries
+
+1. 計算測站 C0M530 (奮起湖站) 從 2006 至 2015 十年的
+(1)每日平均氣溫
+(2)每日最低溫的平均
+(3)每日最低溫的平均
+(4)每月平均氣溫
+(5)平均每月累積降水
+2. 計算最暖月的每日最高溫平均
+3. 計算最暖月的每日最低溫平均
+
+
+
+
+特殊值
+ -9991:儀器故障待修
+ -9996:資料累計於後
+ -9997:因不明原因或故障而無資料
+ -9998:雨跡(Trace)
+ -9999:未觀測而無資料
+欄位名稱：
+ston,yyymmddhh,PS01,TX01,RH01,WD01,WD02,PP01,SS01
+
+ston: station number 站代碼
+yyymmddhh: 時間戳記 年 月 日 小時
+PS01: 氣壓
+TX01: 溫度
+RH01: 相對濕度
+WD01: 風向
+WD02: 風速
+PP01: 降水
+SS01: 日照時數
+
+
+
+
+
+```{r}
+C0M530 <- fread('C0M530.txt', header = FALSE,
+       na.string = c('-9991', '-9996',
+                     '-9997','-9998','-9999'))
+#設定欄位名稱
+#先將欄位名稱儲存成一個文字向量
+colnamesC0M530 <- c('ston','yyymmddhh','PS01',
+                   'TX01','RH01','WD01','WD02',
+                   'PP01','SS01')
+#使用setnames() 來設定 C0M530 的欄位名稱
+setnames(C0M530, colnamesC0M530)
+```
+
+
+
+輸入資料後先看一下樣子
+
+```{r}
+#看一下資料的維度
+dim(C0M530)
+```
+
+再看一下前幾列資料
+
+```{r}
+head(C0M530)
+```
+
+想怎麼使用聚合(agregate)來計算某個週期的皮軍氣象觀測資料。
+所以我們要把想計算的觀測資料，依據時間來做計算。
+第一個遇到的問題就是如何把yyyymmddhh
+這個欄位轉換成符合「時間格式規範」(一般來說是 POXIS data time)的欄位，可以使用```{r}strptime```來處理
+
+
+```{r}
+C0M530[, timestamp := as.POSIXct(strptime(yyyymmddhh-1, '%Y%m%d%H'))]
+```
+
+
+```{r}
+#新增一個欄位為年
+C0M530[,year := data.table::year(timestamp)]
+```
+
+
+```{r}
+#新增一個欄位為月
+C0M530[,month := data.table::month(timestamp)]
+```
+
+```{r}
+#計算月平均溫
+aggrMonth <- aggregate(TX01 ~ month, data = C0M530, FUN = mean)
+```
+
+
